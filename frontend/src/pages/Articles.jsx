@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect, useContext } from "react"
 import { Form, useActionData, useNavigation } from "react-router-dom"
 import HistorySide from "../components/HistorySide";
 import { urlValidation } from "../helpers/dataValidation";
@@ -6,7 +6,6 @@ import { scrapeArticle } from "../api/services";
 import { getArticleSummary } from "../api/googleSummary";
 import { generateCoverImg } from "../api/imgGeneration";
 import SummaryResult from "../components/SummaryResult"
-import { useContext } from "react";
 import { SummaryContext } from "../context/SummaryContext";
 
 export const action = async ({ request }) => {
@@ -79,15 +78,18 @@ export const loader = () => {
 
 export default function Articles() {
     const [length, setLength] = useState(50);
-    const [wordsCount, setWordsCount] = useState(0);
-    const [summarisedWordsCount, setSummarisedWordsCount] = useState(0);
     const [summariseMode, setSummariseMode] = useState('url');
     const [generateCover, setGenerateCover] = useState(true);
     const actionData = useActionData()
     const navigation = useNavigation()
-    const { summaryExpand } = useContext(SummaryContext);
+    const { summaryExpand, setSummaryData } = useContext(SummaryContext);
 
-    console.log(actionData)
+
+    useEffect(() => {
+        if (actionData) {
+            setSummaryData(actionData)
+        }
+    }, [actionData])
 
     return (
         <div className="w-full h-full flex flex-col font-sans">
@@ -105,11 +107,11 @@ export default function Articles() {
                 {/* Right Content */}
                 <div className="flex-1 flex flex-col gap-4 overflow-hidden">
                     {/* Top Card - Input */}
-                    <Form method="post" className="w-full h-1/2 border border-gray-200 rounded-3xl p-3 shadow-sm shrink-0">
+                    <Form method="post" className="w-full h-1/2 border border-gray-200 rounded-3xl p-5 shadow-sm shrink-0 flex flex-col justify-around" style={{ display: summaryExpand ? 'none' : 'flex' }}>
                         <input type="hidden" name="summariseMode" value={summariseMode} />
                         <input type="hidden" name="length" value={length} />
                         <input type="hidden" name="generateCover" value={generateCover} />
-                        <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
+                        <div className="flex flex-wrap items-center justify-between gap-4">
                             <div className="bg-white border border-gray-200 rounded-full p-1 flex items-center">
                                 <button onClick={() => setSummariseMode('url')} className={`px-6 py-2 ${summariseMode === 'url' ? 'bg-orange-500 text-white' : 'text-gray-500'} rounded-full text-sm font-bold shadow-md cursor-pointer`}>URL</button>
                                 <button onClick={() => setSummariseMode('text')} className={`px-6 py-2 ${summariseMode === 'text' ? 'bg-orange-500 text-white' : 'text-gray-500'} rounded-full text-sm font-bold transition-colors cursor-pointer`}>Text</button>
@@ -150,7 +152,7 @@ export default function Articles() {
                             </div>
                         </div>
 
-                        <div className="mb-8">
+                        <div className="h-1/2 flex items-center justify-center">
                             <input
                                 type="text"
                                 name="text"
@@ -160,17 +162,19 @@ export default function Articles() {
                         </div>
 
                         <div className="flex items-center justify-between">
-                            <span className="px-3 py-1 bg-gray-100 border border-gray-200 rounded-lg text-xs font-bold text-gray-500">{wordsCount} words</span>
-                            <button type="submit" className="bg-black text-white px-8 py-3 rounded-full font-bold flex items-center gap-3 hover:bg-gray-800 transition-colors shadow-lg shadow-black/20 cursor-pointer">
+                            <span className="px-3 py-1 bg-gray-100 border border-gray-200 rounded-lg text-xs font-bold text-gray-500">{actionData?.summary?.split(' ').length || 0} words</span>
+                            <button type="submit" disabled={navigation.state === 'submitting'}
+                                className="bg-black text-white px-8 py-3 rounded-full font-bold flex items-center gap-3 hover:bg-gray-800 transition-colors shadow-lg shadow-black/20 cursor-pointer"
+                            >
                                 <i className="fa-solid fa-wand-magic-sparkles"></i>
-                                Summarize
+                                {navigation.state === 'submitting' ? 'Generating...' : 'Summarize'}
                             </button>
                             <div className="w-[85px]"></div> {/* Spacer for center alignment balance */}
                         </div>
                     </Form>
 
                     {/* Bottom Card - Result Preview */}
-                    <SummaryResult summarisedWordsCount={summarisedWordsCount} length={length}/>
+                    <SummaryResult />
                 </div>
             </div>
         </div>

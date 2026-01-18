@@ -43,7 +43,7 @@ def get_video_summary(request):
     video_id = video_id_match.group(1)
 
     try:
-        transcript = YouTubeTranscriptApi.get_transcript(video_id)
+        transcript = YouTubeTranscriptApi().fetch(video_id)
         
         formatter = TextFormatter()
         text_content = formatter.format_transcript(transcript)

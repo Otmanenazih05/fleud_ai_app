@@ -1,11 +1,12 @@
-import { useState } from "react"
-import { NavLink, Form } from "react-router-dom"
+import { useState, useContext, useEffect } from "react"
+import { NavLink, Form, useActionData, useNavigation } from "react-router-dom"
 import HistorySide from "../components/HistorySide";
 import { Buffer } from "buffer";
 import { getDocumentSummary } from "../api/googleSummary";
 import mammoth from "mammoth";
 import { generateCoverImg } from "../api/imgGeneration";
 import SummaryResult from "../components/SummaryResult";
+import { SummaryContext } from "../context/SummaryContext";
 
 
 export const action = async ({ request }) => {
@@ -53,9 +54,7 @@ export const action = async ({ request }) => {
 
     if (generateCover) {
         try {
-            const prompt = {
-                inputs: `minimalist, editorial style illustration for an article titled "${summaryData.title}". abstract, modern, clean lines, high quality, 4k.`,
-            }
+            const prompt = `minimalist, editorial style illustration for an article titled "${summaryData.title}". abstract, modern, clean lines, high quality, 4k.`
             const response = await generateCoverImg(prompt);
             if (response.status !== 200) {
                 throw new Error(response.data);
@@ -75,7 +74,8 @@ export const action = async ({ request }) => {
         error: false,
         ...summaryData,
         source: file.name,
-        coverImg: generatedCover
+        coverImg: generatedCover,
+        preLength: length,
     }
 }
 
@@ -85,10 +85,18 @@ export const loader = () => {
 
 export default function Documents() {
     const [length, setLength] = useState(50);
-    const [wordsCount, setWordsCount] = useState(0);
-    const [summarisedWordsCount, setSummarisedWordsCount] = useState(0);
     const [summariseMode, setSummariseMode] = useState('url');
     const [generateCover, setGenerateCover] = useState(true);
+    const actionData = useActionData()
+    const navigation = useNavigation()
+    const { summaryExpand, setSummaryData } = useContext(SummaryContext);
+
+
+    useEffect(() => {
+        if (actionData) {
+            setSummaryData(actionData)
+        }
+    }, [actionData])
 
     return (
         <div className="w-full h-full flex flex-col font-sans">
@@ -106,7 +114,7 @@ export default function Documents() {
                 {/* Right Content */}
                 <div className="flex-1 flex flex-col gap-3 overflow-hidden">
                     {/* Top Card - Input */}
-                    <Form method="post" encType="multipart/form-data" className="w-full h-1/2 bg-white border border-gray-200 rounded-3xl p-3 shadow-sm shrink-0">
+                    <Form method="post" encType="multipart/form-data" className="w-full h-1/2 border border-gray-200 rounded-3xl p-5 shadow-sm shrink-0 flex flex-col justify-around" style={{ display: summaryExpand ? 'none' : 'flex' }}>
                         <input type="hidden" name="length" value={length} />
                         <input type="hidden" name="generateCover" value={generateCover} />
                         <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
@@ -146,7 +154,7 @@ export default function Documents() {
                         </div>
 
                         <div className="mb-8">
-                            <input type="file" className="hidden" id="file" />
+                            <input type="file" className="hidden" id="file" name="file" />
                             <label htmlFor="file" className="w-1/2 mx-auto bg-orange-500 text-white px-8 py-3 rounded-full font-bold flex items-center justify-center gap-3 hover:bg-orange-600 transition-colors cursor-pointer">
                                 <i className="fa-solid fa-file"></i>
                                 Upload document
@@ -154,17 +162,19 @@ export default function Documents() {
                         </div>
 
                         <div className="flex items-center justify-between">
-                            <span className="px-3 py-1 bg-gray-100 border border-gray-200 rounded-lg text-xs font-bold text-gray-500">{wordsCount} words</span>
-                            <button className="bg-black text-white px-8 py-3 rounded-full font-bold flex items-center gap-3 hover:bg-gray-800 transition-colors shadow-lg shadow-black/20 cursor-pointer">
+                            <span className="px-3 py-1 bg-gray-100 border border-gray-200 rounded-lg text-xs font-bold text-gray-500">{actionData?.summary?.split(' ').length || 0} words</span>
+                            <button type="submit" disabled={navigation.state === 'submitting'}
+                                className="bg-black text-white px-8 py-3 rounded-full font-bold flex items-center gap-3 hover:bg-gray-800 transition-colors shadow-lg shadow-black/20 cursor-pointer"
+                            >
                                 <i className="fa-solid fa-wand-magic-sparkles"></i>
-                                Summarize
+                                {navigation.state === 'submitting' ? 'Generating...' : 'Summarize'}
                             </button>
                             <div className="w-[85px]"></div> {/* Spacer for center alignment balance */}
                         </div>
                     </Form>
 
                     {/* Bottom Card - Result Preview */}
-                    <SummaryResult summarisedWordsCount={summarisedWordsCount} length={length}/>
+                    <SummaryResult />
                 </div>
             </div>
         </div>

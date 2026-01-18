@@ -1,11 +1,15 @@
 import { NavLink } from "react-router-dom"
+import { useContext } from "react"
+import { SummaryContext } from "../context/SummaryContext"
 
 
 
 export default function HistorySide(){
 
+    const { summaryExpand } = useContext(SummaryContext)
+
     return(
-        <aside className="w-[350px] bg-white border border-gray-200 rounded-3xl flex flex-col overflow-hidden shadow-sm">
+        <aside className="w-[350px] bg-white border border-gray-200 rounded-3xl flex flex-col overflow-hidden shadow-sm" style={{ display: summaryExpand ? 'none' : 'block' }}>
             <div className="w-full p-6 border-b border-gray-100 flex items-start justify-between">
                 <div>
                     <div className="flex items-center gap-2 mb-1">
