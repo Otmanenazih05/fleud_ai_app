@@ -1,15 +1,36 @@
 import { NavLink } from "react-router-dom"
 import { useContext } from "react"
 import { SummaryContext } from "../context/SummaryContext"
+import { getSummaryIconStyles } from "../utils/iconHelpers"
 
+const TODAY_ITEMS = [
+    { title: "Create and manage variables", source: "Figma.com", time: "Now" },
+    { title: "Graphic Design Trends 2024", source: "Medium.com", time: "Today" },
+    { title: "UX/UI Design & AI trends", source: "Medium.com", time: "Today" },
+    { title: "Figma is not forever", source: "Medium.com", time: "Today" },
+    { title: "Fundamentals of iconography", source: "Medium.com", time: "Today" }
+];
 
+const YESTERDAY_ITEMS = [
+    { title: "Figma is not forever", source: "Medium.com", time: "2 day ago" },
+    { title: "Fundamentals of iconography", source: "Medium.com", time: "4 day ago" },
+    { title: "Figma is not forever", source: "Medium.com", time: "2 day ago" },
+    { title: "Fundamentals of iconography", source: "Medium.com", time: "4 day ago" }
+];
 
-export default function HistorySide(){
+const OLD_ITEMS = [
+    { title: "Figma is not forever", source: "Medium.com", time: "2 day ago" },
+    { title: "Fundamentals of iconography", source: "Medium.com", time: "4 day ago" },
+    { title: "Figma is not forever", source: "Medium.com", time: "2 day ago" },
+    { title: "Fundamentals of iconography", source: "Medium.com", time: "4 day ago" }
+];
+
+export default function HistorySide() {
 
     const { summaryExpand } = useContext(SummaryContext)
 
-    return(
-        <aside className="w-[350px] bg-white border border-gray-200 rounded-3xl flex flex-col overflow-hidden shadow-sm" style={{ display: summaryExpand ? 'none' : 'block' }}>
+    return (
+        <aside className="w-[350px] bg-white border border-gray-200 rounded-3xl flex flex-col overflow-scroll shadow-sm" style={{ display: summaryExpand ? 'none' : 'block' }}>
             <div className="w-full p-6 border-b border-gray-100 flex items-start justify-between">
                 <div>
                     <div className="flex items-center gap-2 mb-1">
@@ -23,93 +44,82 @@ export default function HistorySide(){
                 </button>
             </div>
 
-            <div className="flex-1 flex flex-col min-h-0">
+            <div className="flex-1 flex flex-col max-h-0">
                 {/* Today Section */}
-                <div className="flex-1 flex flex-col min-h-0">
+                <div className="history flex-1 flex flex-col max-h-[calc(100vh/4)]">
                     <h4 className="px-6 pt-4 pb-2 text-sm font-semibold text-gray-500">Today</h4>
                     <div className="px-4 flex-1 overflow-y-auto flex flex-col gap-3 pb-2 min-h-0">
-                        {/* Item 1 */}
-                        <NavLink to="/article" className="shrink-0 flex items-center justify-between p-3 rounded-2xl hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-all group">
-                            <div className="flex items-center gap-3">
-                                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center text-blue-500">
-                                    <i className="fa-solid fa-file-lines text-lg"></i>
-                                </div>
-                                <div className="flex flex-col">
-                                    <p className="font-bold text-gray-800 text-sm line-clamp-1">Create and manage variables</p>
-                                    <p className="text-gray-400 text-xs mt-0.5">Figma.com • Now</p>
-                                </div>
-                            </div>
-                            <div className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 group-hover:bg-black group-hover:text-white transition-colors">
-                                <i className="fa-solid fa-arrow-right text-xs"></i>
-                            </div>
-                        </NavLink>
-
-                        {/* Item 2 */}
-                        <NavLink to="/article" className="shrink-0 flex items-center justify-between p-3 rounded-2xl hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-all group">
-                            <div className="flex items-center gap-3">
-                                <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center text-purple-500">
-                                    <i className="fa-solid fa-pen-nib text-lg"></i>
-                                </div>
-                                <div className="flex flex-col">
-                                    <p className="font-bold text-gray-800 text-sm line-clamp-1">Graphic Design Trends 2024</p>
-                                    <p className="text-gray-400 text-xs mt-0.5">Medium.com • Today</p>
-                                </div>
-                            </div>
-                            <div className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 group-hover:bg-black group-hover:text-white transition-colors">
-                                <i className="fa-solid fa-arrow-right text-xs"></i>
-                            </div>
-                        </NavLink>
-
-                        <NavLink to="/article" className="shrink-0 flex items-center justify-between p-3 rounded-2xl hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-all group">
-                            <div className="flex items-center gap-3">
-                                <div className="w-12 h-12 bg-cyan-100 rounded-xl flex items-center justify-center text-cyan-500">
-                                    <i className="fa-solid fa-layer-group text-lg"></i>
-                                </div>
-                                <div className="flex flex-col">
-                                    <p className="font-bold text-gray-800 text-sm line-clamp-1">UX/UI Design & AI trends</p>
-                                    <p className="text-gray-400 text-xs mt-0.5">Medium.com • Today</p>
-                                </div>
-                            </div>
-                            <div className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 group-hover:bg-black group-hover:text-white transition-colors">
-                                <i className="fa-solid fa-arrow-right text-xs"></i>
-                            </div>
-                        </NavLink>
+                        {TODAY_ITEMS.map((item, index) => {
+                            const { containerClass, iconClass } = getSummaryIconStyles(item.title, item.source);
+                            return (
+                                <NavLink key={index} to="/article" className="shrink-0 flex items-center justify-between p-3 rounded-2xl hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-all group">
+                                    <div className="flex items-center gap-3">
+                                        <div className={containerClass}>
+                                            <i className={iconClass}></i>
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <p className="font-bold text-gray-800 text-sm line-clamp-1">{item.title}</p>
+                                            <p className="text-gray-400 text-xs mt-0.5">{item.source} • {item.time}</p>
+                                        </div>
+                                    </div>
+                                    <div className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 group-hover:bg-black group-hover:text-white transition-colors">
+                                        <i className="fa-solid fa-arrow-right text-xs"></i>
+                                    </div>
+                                </NavLink>
+                            )
+                        })}
                     </div>
                 </div>
 
                 {/* Yesterday Section */}
-                <div className="flex-1 flex flex-col min-h-0 border-t border-gray-100">
+                <div className="history flex-1 flex flex-col max-h-[calc(100vh/4)] border-t border-gray-100">
                     <h4 className="px-6 pt-4 pb-2 text-sm font-semibold text-gray-500">Yesterday</h4>
                     <div className="px-4 flex-1 overflow-y-auto flex flex-col gap-3 pb-4 min-h-0">
-                        <NavLink to="/article" className="shrink-0 flex items-center justify-between p-3 rounded-2xl hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-all group">
-                            <div className="flex items-center gap-3">
-                                <div className="w-12 h-12 bg-lime-100 rounded-xl flex items-center justify-center text-lime-600">
-                                    <i className="fa-solid fa-image text-lg"></i>
-                                </div>
-                                <div className="flex flex-col">
-                                    <p className="font-bold text-gray-800 text-sm line-clamp-1">Figma is not forever</p>
-                                    <p className="text-gray-400 text-xs mt-0.5">Medium.com • 2 day ago</p>
-                                </div>
-                            </div>
-                            <div className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 group-hover:bg-black group-hover:text-white transition-colors">
-                                <i className="fa-solid fa-arrow-right text-xs"></i>
-                            </div>
-                        </NavLink>
+                        {YESTERDAY_ITEMS.map((item, index) => {
+                            const { containerClass, iconClass } = getSummaryIconStyles(item.title, item.source);
+                            return (
+                                <NavLink key={index} to="/article" className="shrink-0 flex items-center justify-between p-3 rounded-2xl hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-all group">
+                                    <div className="flex items-center gap-3">
+                                        <div className={containerClass}>
+                                            <i className={iconClass}></i>
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <p className="font-bold text-gray-800 text-sm line-clamp-1">{item.title}</p>
+                                            <p className="text-gray-400 text-xs mt-0.5">{item.source} • {item.time}</p>
+                                        </div>
+                                    </div>
+                                    <div className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 group-hover:bg-black group-hover:text-white transition-colors">
+                                        <i className="fa-solid fa-arrow-right text-xs"></i>
+                                    </div>
+                                </NavLink>
+                            )
+                        })}
+                    </div>
+                </div>
 
-                        <NavLink to="/article" className="shrink-0 flex items-center justify-between p-3 rounded-2xl hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-all group">
-                            <div className="flex items-center gap-3">
-                                <div className="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center text-yellow-600">
-                                    <i className="fa-solid fa-icons text-lg"></i>
-                                </div>
-                                <div className="flex flex-col">
-                                    <p className="font-bold text-gray-800 text-sm line-clamp-1">Fundamentals of iconography</p>
-                                    <p className="text-gray-400 text-xs mt-0.5">Medium.com • 4 day ago</p>
-                                </div>
-                            </div>
-                            <div className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 group-hover:bg-black group-hover:text-white transition-colors">
-                                <i className="fa-solid fa-arrow-right text-xs"></i>
-                            </div>
-                        </NavLink>
+                {/* Old Section */}
+                <div className="history flex-1 flex flex-col max-h-[calc(100vh/4)] border-t border-gray-100">
+                    <h4 className="px-6 pt-4 pb-2 text-sm font-semibold text-gray-500">Old</h4>
+                    <div className="px-4 flex-1 overflow-y-auto flex flex-col gap-3 pb-4 min-h-0">
+                        {OLD_ITEMS.map((item, index) => {
+                            const { containerClass, iconClass } = getSummaryIconStyles(item.title, item.source);
+                            return (
+                                <NavLink key={index} to="/article" className="shrink-0 flex items-center justify-between p-3 rounded-2xl hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-all group">
+                                    <div className="flex items-center gap-3">
+                                        <div className={containerClass}>
+                                            <i className={iconClass}></i>
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <p className="font-bold text-gray-800 text-sm line-clamp-1">{item.title}</p>
+                                            <p className="text-gray-400 text-xs mt-0.5">{item.source} • {item.time}</p>
+                                        </div>
+                                    </div>
+                                    <div className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 group-hover:bg-black group-hover:text-white transition-colors">
+                                        <i className="fa-solid fa-arrow-right text-xs"></i>
+                                    </div>
+                                </NavLink>
+                            )
+                        })}
                     </div>
                 </div>
             </div>

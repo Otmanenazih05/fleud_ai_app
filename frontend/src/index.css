@@ -87,3 +87,15 @@
   flex-direction: column;
   justify-content: space-between;
 }
+
+/* Hide scrollbar for history sections */
+.history>div::-webkit-scrollbar {
+  display: none;
+}
+
+.history>div {
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
+}

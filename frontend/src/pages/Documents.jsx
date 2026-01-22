@@ -4,7 +4,6 @@ import HistorySide from "../components/HistorySide";
 import { Buffer } from "buffer";
 import { getDocumentSummary } from "../api/googleSummary";
 import mammoth from "mammoth";
-import { generateCoverImg } from "../api/imgGeneration";
 import SummaryResult from "../components/SummaryResult";
 import { SummaryContext } from "../context/SummaryContext";
 
@@ -12,10 +11,8 @@ import { SummaryContext } from "../context/SummaryContext";
 export const action = async ({ request }) => {
     const formData = await request.formData();
     const length = formData.get('length') || 50;
-    const generateCover = formData.get('generateCover');
     const file = formData.get('file');
 
-    let generatedCover = ''
 
     if (!file || file.size === 0) {
         return { error: "Please upload a file", success: false };
@@ -52,30 +49,20 @@ export const action = async ({ request }) => {
 
     const summaryData = await getDocumentSummary(summaryPayload);
 
-    if (generateCover) {
-        try {
-            const prompt = `minimalist, editorial style illustration for an article titled "${summaryData.title}". abstract, modern, clean lines, high quality, 4k.`
-            const response = await generateCoverImg(prompt);
-            if (response.status !== 200) {
-                throw new Error(response.data);
-            }
-            generatedCover = response.data;
+    if (summaryData.success) {
+        return {
+            ...summaryData,
+            type: "document",
+            source: file.name,
+            preLength: +length,
+            preWords: file.type !== 'application/pdf' ? +summaryPayload.text.split(' ').length : "Unknown",
+            postWords: +summaryData.summary.split(' ').length,
         }
-        catch (error) {
-            return {
-                success: false,
-                error: error.message
-            }
+    }else{
+        return {
+            success: false,
+            error: summaryData.error
         }
-    }
-
-    return {
-        success: true,
-        error: false,
-        ...summaryData,
-        source: file.name,
-        coverImg: generatedCover,
-        preLength: length,
     }
 }
 
@@ -86,7 +73,6 @@ export const loader = () => {
 export default function Documents() {
     const [length, setLength] = useState(50);
     const [summariseMode, setSummariseMode] = useState('url');
-    const [generateCover, setGenerateCover] = useState(true);
     const actionData = useActionData()
     const navigation = useNavigation()
     const { summaryExpand, setSummaryData } = useContext(SummaryContext);
@@ -94,6 +80,7 @@ export default function Documents() {
 
     useEffect(() => {
         if (actionData) {
+            console.log(actionData)
             setSummaryData(actionData)
         }
     }, [actionData])
@@ -116,8 +103,7 @@ export default function Documents() {
                     {/* Top Card - Input */}
                     <Form method="post" encType="multipart/form-data" className="w-full h-1/2 border border-gray-200 rounded-3xl p-5 shadow-sm shrink-0 flex flex-col justify-around" style={{ display: summaryExpand ? 'none' : 'flex' }}>
                         <input type="hidden" name="length" value={length} />
-                        <input type="hidden" name="generateCover" value={generateCover} />
-                        <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
+                        <div className="flex flex-wrap items-center justify-center gap-5 mb-8">
                             <div className="flex items-center gap-4 flex-1 max-w-md mx-4">
                                 <span className="text-sm font-bold text-gray-700">Length</span>
                                 <div className="flex-1 relative h-6 flex items-center group">
@@ -141,16 +127,6 @@ export default function Documents() {
                                     />
                                 </div>
                             </div>
-
-                            <div className="flex items-center gap-3">
-                                <span className="text-sm font-bold text-gray-700">Generate cover</span>
-                                <div
-                                    className={`w-10 h-6 rounded-full p-1 cursor-pointer flex items-center transition-colors duration-200 ${generateCover ? 'bg-orange-400 justify-end' : 'bg-gray-300 justify-start'}`}
-                                    onClick={() => setGenerateCover(!generateCover)}
-                                >
-                                    <div className="w-4 h-4 bg-white rounded-full shadow-sm"></div>
-                                </div>
-                            </div>
                         </div>
 
                         <div className="mb-8">
@@ -162,7 +138,7 @@ export default function Documents() {
                         </div>
 
                         <div className="flex items-center justify-between">
-                            <span className="px-3 py-1 bg-gray-100 border border-gray-200 rounded-lg text-xs font-bold text-gray-500">{actionData?.summary?.split(' ').length || 0} words</span>
+                            <span className="px-3 py-1 bg-gray-100 border border-gray-200 rounded-lg text-xs font-bold text-gray-500">{actionData?.preWords || 0} words</span>
                             <button type="submit" disabled={navigation.state === 'submitting'}
                                 className="bg-black text-white px-8 py-3 rounded-full font-bold flex items-center gap-3 hover:bg-gray-800 transition-colors shadow-lg shadow-black/20 cursor-pointer"
                             >

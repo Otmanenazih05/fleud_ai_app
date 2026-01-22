@@ -2,7 +2,6 @@ import { useState, useEffect, useContext } from "react"
 import { NavLink, Form, useActionData, useNavigation } from "react-router-dom"
 import HistorySide from "../components/HistorySide";
 import { youtubeUrlValidation } from "../helpers/dataValidation";
-import { generateCoverImg } from "../api/imgGeneration";
 import { getVideoSummary } from "../api/googleSummary";
 import { getTranscript } from "../api/services";
 import SummaryResult from "../components/SummaryResult";
@@ -12,10 +11,8 @@ import { SummaryContext } from "../context/SummaryContext";
 export const action = async ({ request }) => {
     const formData = await request.formData();
     const length = formData.get('length');
-    const generateCover = formData.get('generateCover');
     const url = formData.get('url');
 
-    let generatedCover = null;
     let transcript = ""
 
     if (!youtubeUrlValidation(url)) {
@@ -36,29 +33,20 @@ export const action = async ({ request }) => {
     }
 
     const summaryData = await getVideoSummary(transcript, length)
-    const title = summaryData.title;
 
-    if (generateCover) {
-        try {
-            const prompt = `minimalist, editorial style illustration for an article titled "${title}". abstract, modern, clean lines, high quality, 4k.`
-            const response = await generateCoverImg(prompt);
-            if (response.status !== 200) {
-                throw new Error(response.data);
-            }
-            generatedCover = response.data;
+    if (summaryData.success) {
+        return {
+            ...summaryData,
+            type: "video",
+            preLength: +length,
+            preWords: +transcript.split(' ').length,
+            postWords: +summaryData.summary.split(' ').length,
         }
-        catch (error) {
-            return {
-                success: false,
-                error: error.message
-            }
+    }else{
+        return {
+            success: false,
+            error: summaryData.error
         }
-    }
-
-    return {
-        ...summaryData,
-        coverImg: generatedCover,
-        preLength: length,
     }
 }
 
@@ -69,7 +57,6 @@ export const loader = () => {
 export default function Videos() {
     const [length, setLength] = useState(50);
     const [summariseMode, setSummariseMode] = useState('url');
-    const [generateCover, setGenerateCover] = useState(true);
     const actionData = useActionData()
     const navigation = useNavigation()
     const { summaryExpand, setSummaryData } = useContext(SummaryContext);
@@ -99,8 +86,7 @@ export default function Videos() {
                     {/* Top Card - Input */}
                     <Form method="post" className="w-full h-1/2 border border-gray-200 rounded-3xl p-5 shadow-sm shrink-0 flex flex-col justify-around" style={{ display: summaryExpand ? 'none' : 'flex' }}>
                         <input type="hidden" name="length" value={length} />
-                        <input type="hidden" name="generateCover" value={generateCover} />
-                        <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
+                        <div className="flex flex-wrap items-center justify-center gap-5 mb-8">
                             <div className="flex items-center gap-4 flex-1 max-w-md mx-4">
                                 <span className="text-sm font-bold text-gray-700">Length</span>
                                 <div className="flex-1 relative h-6 flex items-center group">
@@ -124,17 +110,9 @@ export default function Videos() {
                                     />
                                 </div>
                             </div>
-
-                            <div className="flex items-center gap-3">
-                                <span className="text-sm font-bold text-gray-700">Generate cover</span>
-                                <div
-                                    className={`w-10 h-6 rounded-full p-1 cursor-pointer flex items-center transition-colors duration-200 ${generateCover ? 'bg-orange-400 justify-end' : 'bg-gray-300 justify-start'}`}
-                                    onClick={() => setGenerateCover(!generateCover)}
-                                >
-                                    <div className="w-4 h-4 bg-white rounded-full shadow-sm"></div>
-                                </div>
-                            </div>
                         </div>
+
+
 
                         <div className="mb-8">
                             <input
@@ -159,8 +137,8 @@ export default function Videos() {
 
                     {/* Bottom Card - Result Preview */}
                     <SummaryResult />
-                </div>
-            </div>
-        </div>
+                </div >
+            </div >
+        </div >
     )
 }

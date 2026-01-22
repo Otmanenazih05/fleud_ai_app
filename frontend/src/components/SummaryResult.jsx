@@ -20,7 +20,7 @@ export default function SummaryResult() {
                     <i className="fa-solid fa-expand"></i>
                 </button>
                 <button className="px-4 py-2 bg-black text-white text-sm font-bold rounded-full shadow-md flex items-center gap-2">
-                    {summaryData?.summary?.split(' ').length || 0} words
+                    {summaryData?.postWords || 0} words
                 </button>
                 <button className="px-4 py-2 bg-orange-100 text-orange-600 text-sm font-bold rounded-full flex items-center gap-2 hover:bg-orange-200 transition-colors">
                     {summaryData?.preLength}% <i className="fa-solid fa-rotate-right"></i>

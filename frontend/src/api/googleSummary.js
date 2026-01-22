@@ -33,11 +33,12 @@ export const getArticleSummary = async (length, articleTitle, summariseMode, art
 
         return {
             success: true,
+            error: null,
             title: aiData.title,
             summary: aiData.summary,
             keyPoints: aiData.key_points,
             source: aiData.source,
-            pastLength: aiData.summary.length
+            postLength: aiData.summary.length
         }
     } catch (error) {
         return {
@@ -78,6 +79,7 @@ export const getVideoSummary = async (transcript, length) => {
 
         return {
             success: true,
+            error: null,
             title: aiData.title,
             summary: aiData.summary,
             keyPoints: aiData.key_points,
@@ -136,6 +138,7 @@ export const getDocumentSummary = async ({ text, base64, mimeType, length }) => 
 
         return {
             success: true,
+            error: null,
             title: aiData.title,
             summary: aiData.summary,
             keyPoints: aiData.key_points,

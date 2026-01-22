@@ -50,6 +50,7 @@ INSTALLED_APPS = [
 
     'users',
     'ai',
+    'api',
 
     'rest_framework',
     'corsheaders',

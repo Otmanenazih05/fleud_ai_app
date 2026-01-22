@@ -4,7 +4,6 @@ import HistorySide from "../components/HistorySide";
 import { urlValidation } from "../helpers/dataValidation";
 import { scrapeArticle } from "../api/services";
 import { getArticleSummary } from "../api/googleSummary";
-import { generateCoverImg } from "../api/imgGeneration";
 import SummaryResult from "../components/SummaryResult"
 import { SummaryContext } from "../context/SummaryContext";
 
@@ -13,13 +12,16 @@ export const action = async ({ request }) => {
     const summariseMode = formData.get('summariseMode');
     const length = formData.get('length') || 50;
     const text = formData.get('text');
-    const generateCover = formData.get('generateCover');
 
     let articleTitle = ""
     let articleContent = ""
-    let generatedCover = null
 
-    if (summariseMode === 'text' && text.length < 100) return false
+    if (summariseMode === 'text' && text.length < 100){
+        return {
+            success: false,
+            error: "Text must be at least 100 characters long"
+        }
+    }
 
     if (summariseMode === 'url') {
         if (urlValidation(text)) {
@@ -45,29 +47,22 @@ export const action = async ({ request }) => {
         }
     }
 
-    if (generateCover) {
-        try {
-            const prompt = `minimalist, editorial style illustration for an article titled "${articleTitle}". abstract, modern, clean lines, high quality, 4k.`
-            const response = await generateCoverImg(prompt);
-            if (response.status !== 200) {
-                throw new Error(response.data);
-            }
-            generatedCover = response.data;
-        }
-        catch (error) {
-            return {
-                success: false,
-                error: "Error generating cover image"
-            }
-        }
-    }
 
     const summaryData = await getArticleSummary(length, articleTitle, summariseMode, articleContent, text)
 
-    return {
-        ...summaryData,
-        coverImg: generatedCover,
-        preLength: length,
+    if (summaryData.success) {
+        return {
+            ...summaryData,
+            type: "article",
+            preLength: +length,
+            preWords: +articleContent.split(' ').length,
+            postWords: +summaryData.summary.split(' ').length,
+        }
+    }else{
+        return {
+            success: false,
+            error: summaryData.error
+        }
     }
 }
 
@@ -79,7 +74,6 @@ export const loader = () => {
 export default function Articles() {
     const [length, setLength] = useState(50);
     const [summariseMode, setSummariseMode] = useState('url');
-    const [generateCover, setGenerateCover] = useState(true);
     const actionData = useActionData()
     const navigation = useNavigation()
     const { summaryExpand, setSummaryData } = useContext(SummaryContext);
@@ -110,8 +104,7 @@ export default function Articles() {
                     <Form method="post" className="w-full h-1/2 border border-gray-200 rounded-3xl p-5 shadow-sm shrink-0 flex flex-col justify-around" style={{ display: summaryExpand ? 'none' : 'flex' }}>
                         <input type="hidden" name="summariseMode" value={summariseMode} />
                         <input type="hidden" name="length" value={length} />
-                        <input type="hidden" name="generateCover" value={generateCover} />
-                        <div className="flex flex-wrap items-center justify-between gap-4">
+                        <div className="flex flex-wrap items-center justify-center gap-5">
                             <div className="bg-white border border-gray-200 rounded-full p-1 flex items-center">
                                 <button onClick={() => setSummariseMode('url')} className={`px-6 py-2 ${summariseMode === 'url' ? 'bg-orange-500 text-white' : 'text-gray-500'} rounded-full text-sm font-bold shadow-md cursor-pointer`}>URL</button>
                                 <button onClick={() => setSummariseMode('text')} className={`px-6 py-2 ${summariseMode === 'text' ? 'bg-orange-500 text-white' : 'text-gray-500'} rounded-full text-sm font-bold transition-colors cursor-pointer`}>Text</button>
@@ -140,16 +133,6 @@ export default function Articles() {
                                     />
                                 </div>
                             </div>
-
-                            <div className="flex items-center gap-3">
-                                <span className="text-sm font-bold text-gray-700">Generate cover</span>
-                                <div
-                                    className={`w-10 h-6 rounded-full p-1 cursor-pointer flex items-center transition-colors duration-200 ${generateCover ? 'bg-orange-400 justify-end' : 'bg-gray-300 justify-start'}`}
-                                    onClick={() => setGenerateCover(!generateCover)}
-                                >
-                                    <div className="w-4 h-4 bg-white rounded-full shadow-sm"></div>
-                                </div>
-                            </div>
                         </div>
 
                         <div className="h-1/2 flex items-center justify-center">
@@ -176,7 +159,7 @@ export default function Articles() {
                     {/* Bottom Card - Result Preview */}
                     <SummaryResult />
                 </div>
-            </div>
-        </div>
+            </div >
+        </div >
     )
 }

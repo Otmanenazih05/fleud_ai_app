@@ -27,3 +27,19 @@ export const scrapeArticle = (url) => {
 export const getTranscript = (url) => {
     return instance.get(`ai/get-video-summary/?url=${url}`);
 }
+
+export const createSummary = (data) => {
+    return instance.post("api/summary/create/", data);
+}
+
+export const getSummaries = () => {
+    return instance.get("api/summary/list/")
+}
+
+export const getSummary = (id) => {
+    return instance.get(`api/summary/retrieve/${id}/`)
+}
+
+export const deleteSummary = (id) => {
+    return instance.delete(`api/summary/destroy/${id}/`)
+}

@@ -24,7 +24,7 @@ export default function PlatformLayout() {
                 {profileView && <Profile />}
                 {settingsView && <Settings />}
             </div>
-            <header className="w-full h-20 pr-5 flex items-center justify-between overflow-hidden">
+            <header className="w-full h-20 pr-5 flex items-center justify-between overflow-hidden mb-5">
                 <div className="logo flex items-center justify-start">
                     <img className="w-30" src="/fleud_logo.png" alt="logo" />
                 </div>
@@ -80,7 +80,7 @@ export default function PlatformLayout() {
                     </div>
                 </aside>
 
-                <section className="w-full h-5/6 p-4 bg-white rounded-l-3xl">
+                <section className="w-full h-6/7 p-4 bg-white rounded-l-3xl">
                     <Outlet />
                 </section>
             </div>
